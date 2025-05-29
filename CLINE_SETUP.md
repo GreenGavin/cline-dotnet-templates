@@ -25,3 +25,10 @@
 - Report success/failure for each file download
 - Continue with other downloads even if some fail
 - Use existing local templates if downloads fail
+
+## Post Setup
+- Edit the `.cline\instructions.md` and update [Solution Name] with the correct project name
+- Prompt the user to edit the file to update the `Tech Stack` section
+- Edit `.cline/context.md` and update with what you know so far cline
+- Edit `.cline/tasks.md` and update with what you know so far cline
+- Ensure the `.cline/TEMPLATE_VERSION` is updated to match the version number from the remote repository
