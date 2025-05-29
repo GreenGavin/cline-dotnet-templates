@@ -102,3 +102,45 @@ Setup/Update Complete!
 - Backup Location: .cline/backups/backup-[version]-[timestamp]/
 - Next: Review updated files and merge any needed customizations
 ```
+
+## Final Verification & Missing File Recovery
+After all downloads complete, verify these critical files exist and download if missing:
+
+### Required Documentation Files Check
+1. **Check `.cline/documentation/github-automation-guide.md`**
+   - If missing: Download from `templates/documentation/github-automation-guide.md`
+   - If template repository doesn't have it: Create basic version with placeholder content
+   - Log: "GitHub automation guide downloaded/created"
+
+2. **Check `.cline/documentation/TEMPLATE_VERSION`**
+   - If missing: Create with current version number
+   - Log: "Template version file created"
+
+3. **Check `.cline/documentation/file-hashes.json`**
+   - If missing: Calculate hashes for all current files and create
+   - Log: "File hash tracking initialized"
+
+### Recovery Download Process
+For any missing documentation file:
+```bash
+# Try primary template location first
+templates/documentation/[filename] → .cline/documentation/[filename]
+
+# If not found, try fallback locations:
+templates/[filename] → .cline/documentation/[filename]
+docs/[filename] → .cline/documentation/[filename]
+
+# If still not found, create basic placeholder with note:
+"This file was not found in template repository. Please update manually."
+```
+
+### Verification Report
+Show final verification status:
+```
+Final Verification Complete!
+✅ Core templates: [count] files verified
+✅ Issue templates: [count] files verified  
+✅ Documentation files: [count] files verified
+⚠️  Missing files created as placeholders: [list if any]
+🔄 Files needing manual review: [list if any]
+```

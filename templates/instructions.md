@@ -1,5 +1,9 @@
 # [Solution Name] - .NET Development Instructions
 
+## Project Overview
+Brief: [One-sentence project description]
+For detailed context, see `.cline/context.md`
+
 ## Architecture Principles
 - Follow Clean Architecture or Domain-Driven Design patterns
 - Implement SOLID principles throughout the codebase
