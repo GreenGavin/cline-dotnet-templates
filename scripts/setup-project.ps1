@@ -1,46 +1,73 @@
+# PowerShell Setup Commands for Windows
+
+# 1. Create and setup the .NET repository
+gh repo create GreenGavin/cline-dotnet-templates --private
+git clone https://github.com/GreenGavin/cline-dotnet-templates.git
+Set-Location cline-dotnet-templates
+
+# 2. Create the folder structure (PowerShell compatible)
+New-Item -ItemType Directory -Path "templates" -Force
+New-Item -ItemType Directory -Path "templates\issue-templates" -Force
+New-Item -ItemType Directory -Path "configs" -Force
+New-Item -ItemType Directory -Path "scripts" -Force
+
+# 3. Create VERSION file
+Set-Content -Path "VERSION" -Value "1.0.0"
+
+# 4. Create template files (you'll copy content from artifacts)
+New-Item -ItemType File -Path "templates\instructions.md" -Force
+New-Item -ItemType File -Path "templates\git-workflow.md" -Force
+New-Item -ItemType File -Path "templates\github-integration.md" -Force
+New-Item -ItemType File -Path "templates\security-notes.md" -Force
+New-Item -ItemType File -Path "templates\issue-templates\bug-report.md" -Force
+New-Item -ItemType File -Path "templates\issue-templates\feature-request.md" -Force
+New-Item -ItemType File -Path "templates\issue-templates\security-issue.md" -Force
+
+# 5. Create PowerShell setup script
+Set-Content -Path "scripts\setup-project.ps1" -Value @"
 # .NET Project Cline Setup Script
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$ProjectPath,
+    [Parameter(Mandatory=`$true)]
+    [string]`$ProjectPath,
     
-    [Parameter(Mandatory=$false)]
-    [string]$TemplateRepo = "https://raw.githubusercontent.com/GreenGavin/cline-dotnet-templates/main"
+    [Parameter(Mandatory=`$false)]
+    [string]`$TemplateRepo = "https://raw.githubusercontent.com/GreenGavin/cline-dotnet-templates/main"
 )
 
 Write-Host "🚀 Setting up Cline context for .NET project..." -ForegroundColor Green
 
 # Ensure we're in the right directory
-if (!(Test-Path $ProjectPath)) {
-    Write-Error "Project path does not exist: $ProjectPath"
+if (!(Test-Path `$ProjectPath)) {
+    Write-Error "Project path does not exist: `$ProjectPath"
     exit 1
 }
 
-Set-Location $ProjectPath
+Set-Location `$ProjectPath
 
 # Create .cline directory if it doesn't exist
 if (!(Test-Path ".cline")) {
-    New-Item -ItemType Directory -Path ".cline"
+    New-Item -ItemType Directory -Path ".cline" -Force
     Write-Host "✅ Created .cline directory" -ForegroundColor Green
 }
 
 # Create templates subdirectory
 if (!(Test-Path ".cline\templates")) {
-    New-Item -ItemType Directory -Path ".cline\templates"
-    New-Item -ItemType Directory -Path ".cline\templates\issue-templates"
+    New-Item -ItemType Directory -Path ".cline\templates" -Force
+    New-Item -ItemType Directory -Path ".cline\templates\issue-templates" -Force
     Write-Host "✅ Created templates directory structure" -ForegroundColor Green
 }
 
 # Function to download template files
 function Download-Template {
-    param($FileName, $LocalPath)
+    param(`$FileName, `$LocalPath)
     
     try {
-        $url = "$TemplateRepo/templates/$FileName"
-        Invoke-WebRequest -Uri $url -OutFile $LocalPath -UseBasicParsing
-        Write-Host "✅ Downloaded: $FileName" -ForegroundColor Green
+        `$url = "`$TemplateRepo/templates/`$FileName"
+        Invoke-WebRequest -Uri `$url -OutFile `$LocalPath -UseBasicParsing
+        Write-Host "✅ Downloaded: `$FileName" -ForegroundColor Green
     }
     catch {
-        Write-Warning "❌ Failed to download $FileName`: $_"
+        Write-Warning "❌ Failed to download `$FileName`: `$_"
     }
 }
 
@@ -57,114 +84,99 @@ Download-Template "issue-templates/bug-report.md" ".cline\templates\issue-templa
 Download-Template "issue-templates/feature-request.md" ".cline\templates\issue-templates\feature-request.md"
 Download-Template "issue-templates/security-issue.md" ".cline\templates\issue-templates\security-issue.md"
 
-# Create basic context files if they don't exist
-if (!(Test-Path ".cline\context.md")) {
-    $contextContent = @"
-# Project Context - $((Get-Item $ProjectPath).Name)
-
-## Current Status
-New .NET project setup with Cline context initialized.
-
-## Recent Progress
-- Cline templates downloaded and configured
-- Project structure ready for development
-
-## Active Development Areas
-- Initial project setup
-- Architecture planning
-
-## Known Issues
-None at this time.
-
-## Technical Debt
-None at this time.
+Write-Host "🎉 Setup complete!" -ForegroundColor Green
 "@
-    Set-Content -Path ".cline\context.md" -Value $contextContent
-    Write-Host "✅ Created context.md" -ForegroundColor Green
-}
 
-if (!(Test-Path ".cline\tasks.md")) {
-    $tasksContent = @"
-# Development Tasks
+# 6. Create RELEASE_NOTES.md
+Set-Content -Path "RELEASE_NOTES.md" -Value @"
+# Template Release Notes
 
-## High Priority
-- [ ] Define project requirements
-- [ ] Set up development environment
-- [ ] Plan architecture and data models
+## Version 1.0.0 - $(Get-Date -Format 'MMMM yyyy')
 
-## Medium Priority
-- [ ] Set up CI/CD pipeline
-- [ ] Configure logging and monitoring
-- [ ] Plan testing strategy
+### 🎉 Initial Release
+Welcome to the **Cline .NET Development Templates** system! Professional templates for enterprise-grade .NET development.
 
-## Low Priority
-- [ ] Documentation setup
-- [ ] Performance optimization planning
+### 🆕 What's Included
+- **Development Instructions** - Comprehensive .NET coding guidelines
+- **Git Workflow** - Professional Git branching and commit conventions  
+- **GitHub Integration** - Issue templates and CLI automation
+- **Security Guidelines** - Security-first .NET development practices
 
-## Completed Recently
-- [x] Cline context setup completed
+### 🚀 Key Features
+- **Automatic Template Management** - Smart project detection and updates
+- **Enterprise Standards** - Clean Architecture and SOLID principles
+- **Security-First** - OWASP compliance and secure coding practices
+- **Cross-Platform** - Works on Windows, Mac, and Linux
+
+### 📋 Getting Started
+1. Update your Cline custom instruction with the dynamic template system
+2. Open any .NET project - templates download automatically
+3. Follow professional development guidelines
+4. Use GitHub integration for issue management
+
+### 🎯 What's Next
+- Enhanced security templates
+- CI/CD pipeline templates  
+- Microservices architecture patterns
+- Cloud deployment guidelines
+
+**Happy coding!** 🚀
 "@
-    Set-Content -Path ".cline\tasks.md" -Value $tasksContent
-    Write-Host "✅ Created tasks.md" -ForegroundColor Green
-}
 
-if (!(Test-Path ".cline\decisions.md")) {
-    $decisionsContent = @"
-# Architecture Decision Record
+# 7. Create README.md
+Set-Content -Path "README.md" -Value @"
+# Cline .NET Development Templates
 
-## ADR-001: Cline Development Assistant Setup
-- **Decision**: Use Cline with standardized .NET templates for development
-- **Rationale**: Ensure consistent development practices and code quality
-- **Status**: Implemented
-- **Date**: $(Get-Date -Format 'yyyy-MM-dd')
-- **Consequences**: Standardized development workflow and automated best practices
+Professional templates for .NET projects using Cline AI assistant with enterprise-grade standards.
 
-[Add more ADRs as architectural decisions are made]
+## 🎯 Target Projects
+- ASP.NET Core Web APIs and MVC applications
+- Clean Architecture enterprise applications
+- Microservices with .NET 8+
+- Blazor web applications
+
+## 🚀 Quick Setup
+Templates download automatically when you use Cline in any .NET project.
+
+### Manual Setup (if needed)
+``````powershell
+.\scripts\setup-project.ps1 -ProjectPath "C:\path\to\your\project"
+``````
+
+## 📋 Templates Included
+- **Development Instructions** - Comprehensive .NET guidelines
+- **Git Workflow** - Professional Git practices
+- **GitHub Integration** - Issue management and automation
+- **Security Guidelines** - Security-first development
+
+## 🔧 Features
+- **Automatic Updates** - Templates stay current
+- **Enterprise Standards** - Clean Architecture and SOLID principles
+- **Security-First** - OWASP compliance built-in
+- **Cross-Platform** - Windows, Mac, Linux support
+
+## 🔄 Version
+Current Version: 1.0.0
+
+Built for professional .NET development teams.
 "@
-    Set-Content -Path ".cline\decisions.md" -Value $decisionsContent
-    Write-Host "✅ Created decisions.md" -ForegroundColor Green
-}
 
-# Download and save the current template version
-try {
-    $version = Invoke-WebRequest -Uri "$TemplateRepo/VERSION" -UseBasicParsing
-    Set-Content -Path ".cline\TEMPLATE_VERSION" -Value $version.Content.Trim()
-    Write-Host "✅ Template version: $($version.Content.Trim())" -ForegroundColor Green
-}
-catch {
-    Write-Warning "❌ Could not retrieve template version"
-    Set-Content -Path ".cline\TEMPLATE_VERSION" -Value "1.0.0"
-}
+# 8. Add and commit everything
+git add .
+git commit -m "feat: initial .NET templates with comprehensive development guidelines
 
-# Check if this is a .NET project and provide specific guidance
-$hasSolution = Get-ChildItem -Path $ProjectPath -Filter "*.sln" -ErrorAction SilentlyContinue
-$hasProjects = Get-ChildItem -Path $ProjectPath -Filter "*.csproj" -Recurse -ErrorAction SilentlyContinue
+- Professional .NET development instructions
+- Git workflow with conventional commits
+- GitHub integration and issue templates
+- Security-first development practices
+- Cross-platform PowerShell setup script
+- Enterprise-grade standards and patterns"
 
-if ($hasSolution -or $hasProjects) {
-    Write-Host "🎯 .NET project detected!" -ForegroundColor Cyan
-    
-    if ($hasSolution) {
-        Write-Host "   Solution file: $($hasSolution.Name)" -ForegroundColor Gray
-    }
-    
-    if ($hasProjects) {
-        Write-Host "   Project files found: $($hasProjects.Count)" -ForegroundColor Gray
-    }
-} else {
-    Write-Host "⚠️  No .NET solution or project files detected." -ForegroundColor Yellow
-    Write-Host "   Make sure you're in the correct directory or create your .NET project first." -ForegroundColor Yellow
-}
+git push origin main
 
 Write-Host ""
-Write-Host "🎉 Cline setup complete!" -ForegroundColor Green
-Write-Host "📁 Files created in .cline/ directory:" -ForegroundColor Cyan
-Get-ChildItem -Path ".cline" -Recurse | ForEach-Object {
-    Write-Host "   $($_.FullName.Replace((Get-Location).Path, '.'))" -ForegroundColor Gray
-}
-
-Write-Host ""
+Write-Host "🎉 .NET repository setup complete!" -ForegroundColor Green
 Write-Host "📋 Next steps:" -ForegroundColor Cyan
-Write-Host "1. Review and customize .cline/instructions.md for your project" -ForegroundColor Gray
-Write-Host "2. Update .cline/context.md with your project specifics" -ForegroundColor Gray
-Write-Host "3. Add your initial tasks to .cline/tasks.md" -ForegroundColor Gray
-Write-Host "4. Start using Cline with your standardized development workflow!" -ForegroundColor Gray
+Write-Host "1. Copy content from artifacts into template files" -ForegroundColor Gray
+Write-Host "2. Test the setup script on a sample project" -ForegroundColor Gray
+Write-Host "3. Update your Cline custom instruction" -ForegroundColor Gray
