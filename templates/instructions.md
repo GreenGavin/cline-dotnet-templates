@@ -28,7 +28,7 @@
 - Implement proper async/await patterns for I/O operations
 
 ### Code Commenting
-Ensure the code is commented as you are writing or refactoring it.  If no comments are found add them.  Ensure the structure of the classes matches the below regions breakdown.
+Ensure the code is commented as you are writing or refactoring it. If no comments are found add them. Ensure the structure of the classes matches the below regions breakdown.
 
 Adjust the regions to the generally recommended order of: 
 { Constants, Fields, Enums, Events, Properties, Constructors, Methods, Nested Types }
@@ -132,6 +132,27 @@ Solution.sln
 - Monitor key business metrics
 - Set up alerting for critical issues
 - Implement distributed tracing for microservices
+
+## Git Workflow
+Follow the git workflow outlined in `git-workflow.md` for:
+- Branch naming conventions
+- Commit message standards
+- Pull request processes
+- Code review requirements
+
+## GitHub Integration
+Reference `github-integration.md` for:
+- Repository setup and configuration
+- CI/CD pipeline configuration
+- Issue and pull request templates
+- GitHub Actions workflows
+
+## Security Notes
+Follow all security guidelines in `security-notes.md` including:
+- Authentication and authorization patterns
+- Data protection requirements
+- Security testing procedures
+- Vulnerability management
 
 ## Documentation Standards
 - Maintain up-to-date README files
