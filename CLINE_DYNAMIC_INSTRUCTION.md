@@ -23,3 +23,8 @@ At the start of every session:
 - **Secondary files**: Follow references to git-workflow.md, security-notes.md, etc. when mentioned in instructions
 - **Template usage**: Use downloaded templates for consistent formatting and standards
 - **Version management**: Respect user modifications and provide update options when template versions change
+
+## Cleanup after your finished
+- Ensure you update the `.cline\context.md` as applicable
+- Ensure you update the `.cline\tasks.md` as applicable
+- Ensure you update the `.cline\decisions.md` as applicable
