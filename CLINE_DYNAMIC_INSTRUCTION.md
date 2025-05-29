@@ -56,78 +56,339 @@ Automatically detect project type based on files present in the current director
 
 ### Template Download and Setup Process
 
+### Template Download and Setup Process
+
+### Template Download and Setup Process
+
 #### Step 1: Check for Template Updates
+When starting a session, Cline should automatically execute this process:
+
 ```javascript
-// Pseudo-code process for Cline to follow
-async function checkAndUpdateTemplates() {
+// Cross-platform template initialization process
+async function initializeTemplates() {
+  console.log("🔄 Initializing Cline templates...");
+  
   const projectType = detectProjectType();
-  const templateRepo = getTemplateRepository(projectType);
+  console.log(`📁 Detected project type: ${projectType}`);
+  
+  const templateRepo = projectType === 'dotnet' 
+    ? 'https://raw.githubusercontent.com/GreenGavin/cline-dotnet-templates/main'
+    : 'https://raw.githubusercontent.com/GreenGavin/cline-crossplatform-templates/main';
   
   try {
-    // Check local version
-    const localVersion = readFile('.cline/TEMPLATE_VERSION') || '0.0.0';
+    // Check if .cline directory exists (cross-platform path handling)
+    const clineDir = '.cline';
+    const templatesDir = path.join(clineDir, 'templates');
+    const issueTemplatesDir = path.join(templatesDir, 'issue-templates');
+    
+    if (!directoryExists(clineDir)) {
+      console.log("📁 Creating .cline directory...");
+      createDirectoryRecursive(clineDir);
+      createDirectoryRecursive(templatesDir);
+      createDirectoryRecursive(issueTemplatesDir);
+    }
+
+    // Check local version (cross-platform file reading)
+    const versionFile = path.join(clineDir, 'TEMPLATE_VERSION');
+    const localVersion = fileExists(versionFile) ? readFile(versionFile).trim() : '0.0.0';
     
     // Check remote version
     const remoteVersionUrl = `${templateRepo}/VERSION`;
-    const remoteVersion = await fetchContent(remoteVersionUrl);
+    const remoteVersion = (await fetchContent(remoteVersionUrl)).trim();
     
-    if (compareVersions(remoteVersion, localVersion) > 0) {
+    if (compareVersions(remoteVersion, localVersion) > 0 || localVersion === '0.0.0') {
       console.log(`📡 Template update available: ${localVersion} → ${remoteVersion}`);
       
-      // Ask user for permission to update
-      const shouldUpdate = await askUser(`Update templates from ${localVersion} to ${remoteVersion}?`);
-      
-      if (shouldUpdate) {
-        await downloadTemplates(templateRepo, remoteVersion);
-        console.log(`✅ Templates updated to version ${remoteVersion}`);
+      // Show release notes if available
+      try {
+        const releaseNotes = await fetchContent(`${templateRepo}/RELEASE_NOTES.md`);
+        console.log("\n" + "=".repeat(60));
+        console.log("🆕 WHAT'S NEW IN THIS UPDATE:");
+        console.log("=".repeat(60));
+        console.log(releaseNotes);
+        console.log("=".repeat(60) + "\n");
+      } catch (error) {
+        console.log("📋 Release notes not available");
       }
+      
+      console.log("⬇️ Downloading templates...");
+      await downloadAllTemplates(templateRepo, projectType);
+      
+      // Save version (cross-platform file writing)
+      writeFile(versionFile, remoteVersion);
+      console.log(`✅ Templates updated to version ${remoteVersion}`);
     } else {
       console.log(`✅ Templates are up to date (v${localVersion})`);
     }
   } catch (error) {
     console.log(`⚠️ Could not check for template updates: ${error.message}`);
-    console.log(`📁 Using existing local templates`);
+    console.log(`📁 Using existing local templates or creating basic ones`);
+    
+    // Create basic templates if none exist
+    const instructionsFile = path.join('.cline', 'instructions.md');
+    if (!fileExists(instructionsFile)) {
+      await createBasicTemplates(projectType);
+    }
+  }
+}
+
+// Cross-platform helper functions
+function createDirectoryRecursive(dirPath) {
+  // Handle both Windows and Unix-style paths
+  const normalizedPath = path.normalize(dirPath);
+  if (!directoryExists(normalizedPath)) {
+    // Create directory recursively
+    const parts = normalizedPath.split(path.sep);
+    let currentPath = '';
+    
+    for (const part of parts) {
+      currentPath = currentPath ? path.join(currentPath, part) : part;
+      if (currentPath && !directoryExists(currentPath)) {
+        createDirectory(currentPath);
+      }
+    }
+  }
+}
+
+function normalizeLineEndings(content) {
+  // Normalize line endings for cross-platform compatibility
+  return content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+// This function should run automatically when Cline starts
+initializeTemplates();
+```
+
+#### Step 2: Cross-Platform Template Download
+The following templates should be downloaded with proper path handling:
+
+**For .NET Projects:**
+```javascript
+const dotnetTemplateFiles = [
+  { remote: 'templates/instructions.md', local: path.join('.cline', 'instructions.md') },
+  { remote: 'templates/git-workflow.md', local: path.join('.cline', 'git-workflow.md') },
+  { remote: 'templates/github-integration.md', local: path.join('.cline', 'github-integration.md') },
+  { remote: 'templates/security-notes.md', local: path.join('.cline', 'security-notes.md') },
+  { remote: 'templates/issue-templates/bug-report.md', local: path.join('.cline', 'templates', 'issue-templates', 'bug-report.md') },
+  { remote: 'templates/issue-templates/feature-request.md', local: path.join('.cline', 'templates', 'issue-templates', 'feature-request.md') },
+  { remote: 'templates/issue-templates/security-issue.md', local: path.join('.cline', 'templates', 'issue-templates', 'security-issue.md') }
+];
+
+const crossPlatformTemplateFiles = [
+  { remote: 'templates/instructions.md', local: path.join('.cline', 'instructions.md') },
+  { remote: 'templates/git-workflow.md', local: path.join('.cline', 'git-workflow.md') },
+  { remote: 'templates/github-integration.md', local: path.join('.cline', 'github-integration.md') },
+  { remote: 'templates/security-notes.md', local: path.join('.cline', 'security-notes.md') },
+  { remote: 'templates/issue-templates/bug-report.md', local: path.join('.cline', 'templates', 'issue-templates', 'bug-report.md') },
+  { remote: 'templates/issue-templates/feature-request.md', local: path.join('.cline', 'templates', 'issue-templates', 'feature-request.md') },
+  { remote: 'templates/issue-templates/performance-issue.md', local: path.join('.cline', 'templates', 'issue-templates', 'performance-issue.md') },
+  { remote: 'templates/issue-templates/security-issue.md', local: path.join('.cline', 'templates', 'issue-templates', 'security-issue.md') }
+];
+
+async function downloadAllTemplates(baseUrl, projectType) {
+  const files = projectType === 'dotnet' ? dotnetTemplateFiles : crossPlatformTemplateFiles;
+  
+  for (const file of files) {
+    try {
+      const content = await fetchContent(`${baseUrl}/${file.remote}`);
+      
+      // Ensure directory exists before writing file
+      const dir = path.dirname(file.local);
+      if (!directoryExists(dir)) {
+        createDirectoryRecursive(dir);
+      }
+      
+      // Normalize line endings for cross-platform compatibility
+      const normalizedContent = normalizeLineEndings(content);
+      writeFile(file.local, normalizedContent);
+      console.log(`✅ Downloaded: ${file.remote}`);
+    } catch (error) {
+      console.log(`❌ Failed to download: ${file.remote} - ${error.message}`);
+    }
+  }
+  
+  // Create context files if they don't exist
+  await createContextFilesIfNeeded(projectType);
+}
+
+async function createContextFilesIfNeeded(projectType) {
+  const contextFiles = [
+    {
+      path: path.join('.cline', 'context.md'),
+      content: `# Project Context - Current Project
+
+## Current Status
+New ${projectType} project setup with Cline context initialized.
+
+## Recent Progress
+- Cline templates downloaded and configured
+- Project structure ready for development
+
+## Active Development Areas
+- Initial project setup
+- Architecture planning
+
+## Known Issues
+None at this time.
+
+## Technical Debt
+None at this time.
+`
+    },
+    {
+      path: path.join('.cline', 'tasks.md'),
+      content: `# Development Tasks
+
+## High Priority
+- [ ] Define project requirements
+- [ ] Set up development environment
+- [ ] Plan architecture and data models
+
+## Medium Priority
+- [ ] Set up CI/CD pipeline
+- [ ] Configure logging and monitoring
+- [ ] Plan testing strategy
+
+## Low Priority
+- [ ] Documentation setup
+- [ ] Performance optimization planning
+
+## Completed Recently
+- [x] Cline context setup completed
+`
+    },
+    {
+      path: path.join('.cline', 'decisions.md'),
+      content: `# Architecture Decision Record
+
+## ADR-001: Cline Development Assistant Setup
+- **Decision**: Use Cline with standardized ${projectType} templates for development
+- **Rationale**: Ensure consistent development practices and code quality
+- **Status**: Implemented
+- **Date**: ${new Date().toISOString().split('T')[0]}
+- **Consequences**: Standardized development workflow and automated best practices
+
+[Add more ADRs as architectural decisions are made]
+`
+    }
+  ];
+
+  for (const file of contextFiles) {
+    if (!fileExists(file.path)) {
+      // Ensure directory exists
+      const dir = path.dirname(file.path);
+      if (!directoryExists(dir)) {
+        createDirectoryRecursive(dir);
+      }
+      
+      writeFile(file.path, normalizeLineEndings(file.content));
+      console.log(`✅ Created: ${path.basename(file.path)}`);
+    }
   }
 }
 ```
 
-#### Step 2: Download Template Files
-**For .NET Projects, download these files:**
+#### Step 3: Cross-Platform Project Detection
+Enhanced project detection that works on Windows and Mac:
+
 ```javascript
-const dotnetTemplateFiles = [
-  'templates/instructions.md',
-  'templates/git-workflow.md',
-  'templates/github-integration.md',
-  'templates/security-notes.md',
-  'templates/issue-templates/bug-report.md',
-  'templates/issue-templates/feature-request.md',
-  'templates/issue-templates/security-issue.md'
-];
+function detectProjectType() {
+  try {
+    // Get current directory contents
+    const files = listDirectoryContents('.');
+    const allFiles = [...files.files, ...files.directories];
+    
+    // .NET Project Detection (case-insensitive for Windows)
+    const hasDotNetFiles = allFiles.some(file => {
+      const lowerFile = file.toLowerCase();
+      return lowerFile.endsWith('.sln') || 
+             lowerFile.endsWith('.csproj') || 
+             lowerFile === 'program.cs' || 
+             lowerFile === 'startup.cs' ||
+             lowerFile === 'appsettings.json' ||
+             lowerFile === 'directory.build.props' ||
+             lowerFile === 'directory.packages.props';
+    });
+    
+    const hasDotNetStructure = files.directories.some(dir => {
+      const lowerDir = dir.toLowerCase();
+      return ['src', 'tests', 'test'].includes(lowerDir);
+    });
+    
+    if (hasDotNetFiles || hasDotNetStructure) {
+      return 'dotnet';
+    }
+    
+    // Cross-Platform Project Detection
+    const hasPackageJson = files.files.some(file => file.toLowerCase() === 'package.json');
+    
+    if (hasPackageJson) {
+      try {
+        const packageContent = readFile('package.json');
+        const packageData = JSON.parse(packageContent);
+        
+        // Check for React Native dependencies
+        const deps = { ...packageData.dependencies, ...packageData.devDependencies };
+        const hasReactNative = Object.keys(deps).some(dep => 
+          dep.includes('react-native') || 
+          dep.includes('@react-native') ||
+          dep === 'electron' ||
+          dep === 'metro'
+        );
+        
+        if (hasReactNative) {
+          return 'crossplatform';
+        }
+      } catch (error) {
+        console.log('Could not parse package.json');
+      }
+    }
+    
+    // Check for cross-platform directory structure
+    const hasCrossPlatformStructure = files.directories.some(dir => {
+      const lowerDir = dir.toLowerCase();
+      return ['electron', 'src/platforms', 'src/core', 'src/services'].some(pattern => 
+        lowerDir.includes(pattern.toLowerCase())
+      );
+    });
+    
+    if (hasCrossPlatformStructure) {
+      return 'crossplatform';
+    }
+    
+    // Default fallback
+    return 'dotnet';
+    
+  } catch (error) {
+    console.log(`Project detection error: ${error.message}`);
+    return 'dotnet'; // Safe fallback
+  }
+}
+
+function listDirectoryContents(dirPath) {
+  // Cross-platform directory listing
+  try {
+    const items = listDirectory(dirPath);
+    const files = [];
+    const directories = [];
+    
+    for (const item of items) {
+      if (isDirectory(path.join(dirPath, item))) {
+        directories.push(item);
+      } else {
+        files.push(item);
+      }
+    }
+    
+    return { files, directories };
+  } catch (error) {
+    return { files: [], directories: [] };
+  }
+}
 ```
 
-**For Cross-Platform Projects, download these files:**
-```javascript
-const crossPlatformTemplateFiles = [
-  'templates/instructions.md',
-  'templates/git-workflow.md',
-  'templates/github-integration.md',
-  'templates/security-notes.md',
-  'templates/issue-templates/bug-report.md',
-  'templates/issue-templates/feature-request.md',
-  'templates/issue-templates/security-issue.md',
-  'templates/issue-templates/performance-issue.md'
-];
-```
-
-#### Step 3: Initialize Project Context Files
-**Always create these files if they don't exist:**
-```javascript
-const contextFiles = [
-  '.cline/context.md',
-  '.cline/tasks.md', 
-  '.cline/decisions.md'
-];
-```
+#### Step 4: Mandatory Execution
+**IMPORTANT: Cline must execute the template initialization process at the start of EVERY session, with proper cross-platform support.**
 
 ### Context Loading Sequence
 **Execute this sequence at the start of every session:**
@@ -303,5 +564,3 @@ gh repo create your-username/cline-crossplatform-templates --private
 # Update repository URLs in this instruction
 # Start using with any project!
 ```
-
-Remember: This system provides **maximum flexibility** with **minimum maintenance overhead**. Templates stay current, projects stay consistent, and developers stay productive! 🚀
